@@ -5,8 +5,8 @@ import {
   AlertTitle, 
   AlertDescription 
 } from "@/components/ui/alert";
-import type { Product } from "../data/dummyData";
 import { AlertTriangle } from "lucide-react";
+import type { Product } from "../types";
 
 interface ProductOverviewProps {
   product: Product | null;
@@ -23,12 +23,14 @@ export const ProductOverview = ({ product }: ProductOverviewProps) => {
 
   const getStatusBadge = () => {
     switch (product.status) {
-      case 'in-stock':
+      case 'IN_STOCK':
         return <Badge className="bg-green-500 hover:bg-green-600">In Stock</Badge>;
-      case 'low-stock':
+      case 'LOW_STOCK':
         return <Badge className="bg-yellow-500 hover:bg-yellow-600">Low Stock</Badge>;
-      case 'out-of-stock':
+      case 'OUT_OF_STOCK':
         return <Badge className="bg-red-500 hover:bg-red-600">Out of Stock</Badge>;
+      case 'DISCONTINUED':
+        return <Badge className="bg-gray-500 hover:bg-gray-600">Discontinued</Badge>;
       default:
         return null;
     }
@@ -38,23 +40,53 @@ export const ProductOverview = ({ product }: ProductOverviewProps) => {
     return Math.min(100, Math.round((product.currentStock / product.maxStock) * 100));
   };
 
+  const getStockBarColor = () => {
+    switch (product.status) {
+      case 'IN_STOCK':
+        return 'bg-green-500';
+      case 'LOW_STOCK':
+        return 'bg-yellow-500';
+      case 'OUT_OF_STOCK':
+        return 'bg-red-500';
+      case 'DISCONTINUED':
+        return 'bg-gray-500';
+      default:
+        return 'bg-blue-500';
+    }
+  };
+
   return (
     <Card className="p-6 h-full">
       <div className="flex justify-between items-start mb-4">
-        <h2 className="text-x1 font-bold">{product.name}</h2>
+        <div>
+          <h2 className="text-xl font-bold">{product.name}</h2>
+          <p className="text-sm text-muted-foreground">{product.sku}</p>
+        </div>
         {getStatusBadge()}
       </div>
+
+      {product.description && (
+        <p className="text-sm text-muted-foreground mb-4">{product.description}</p>
+      )}
 
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="space-y-2">
           <h3 className="font-semibold text-sm text-muted-foreground">Current Stock</h3>
-          <p className="text-3xl font-bold">{product.currentStock}</p>
+          <p className="text-3xl font-bold">{typeof product.currentStock === 'number' ? product.currentStock.toLocaleString() : '0'}</p>
         </div>
         <div className="space-y-2">
           <h3 className="font-semibold text-sm text-muted-foreground">Stock Range</h3>
           <p className="text-lg">
-            {product.minStock} - {product.maxStock}
+            {typeof product.minStock === 'number' ? product.minStock.toLocaleString() : '0'} - {typeof product.maxStock === 'number' ? product.maxStock.toLocaleString() : '0'}
           </p>
+        </div>
+        <div className="space-y-2">
+          <h3 className="font-semibold text-sm text-muted-foreground">Unit Price</h3>
+          <p className="text-lg font-semibold">${typeof product.unitPrice === 'number' ? product.unitPrice.toFixed(2) : '0.00'}</p>
+        </div>
+        <div className="space-y-2">
+          <h3 className="font-semibold text-sm text-muted-foreground">Category</h3>
+          <p className="text-lg">{product.category}</p>
         </div>
       </div>
 
@@ -65,42 +97,46 @@ export const ProductOverview = ({ product }: ProductOverviewProps) => {
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2.5">
           <div
-            className={`h-2.5 rounded-full ${
-              product.status === 'in-stock'
-                ? 'bg-green-500'
-                : product.status === 'low-stock'
-                ? 'bg-yellow-500'
-                : 'bg-red-500'
-            }`}
+            className={`h-2.5 rounded-full ${getStockBarColor()}`}
             style={{ width: `${getStockPercentage()}%` }}
           ></div>
         </div>
       </div>
 
-      {product.status === 'in-stock' && (
+      {product.status === 'IN_STOCK' && (
         <Alert variant="default" className="mb-4">
           <AlertTitle>In Stock</AlertTitle>
           <AlertDescription>
-            This product is currently in stock.
+            This product is currently in stock with {product.currentStock} units available.
           </AlertDescription>
         </Alert>
       )}
 
-      {product.status === 'low-stock' && (
+      {product.status === 'LOW_STOCK' && (
         <Alert variant="default" className="mb-4">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Low Stock Warning</AlertTitle>
           <AlertDescription>
-            Current stock is below minimum threshold.
+            Current stock ({product.currentStock}) is below minimum threshold ({product.minStock}).
           </AlertDescription>
         </Alert>
       )}
 
-      {product.status === 'out-of-stock' && (
+      {product.status === 'OUT_OF_STOCK' && (
         <Alert variant="destructive" className="mb-4">
+          <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Out of Stock</AlertTitle>
           <AlertDescription>
-            This product is currently out of stock.
+            This product is currently out of stock. Reorder recommended.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {product.status === 'DISCONTINUED' && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertTitle>Discontinued</AlertTitle>
+          <AlertDescription>
+            This product has been discontinued and is no longer being restocked.
           </AlertDescription>
         </Alert>
       )}
@@ -111,10 +147,10 @@ export const ProductOverview = ({ product }: ProductOverviewProps) => {
           <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
             <div
               className="h-2.5 rounded-full bg-blue-500"
-              style={{ width: `${product.trendScore * 10}%` }}
+              style={{ width: `${Math.min(100, (typeof product.trendScore === 'number' ? product.trendScore : 0) * 10)}%` }}
             ></div>
           </div>
-          <span className="text-sm font-medium">{product.trendScore}/10</span>
+          <span className="text-sm font-medium">{typeof product.trendScore === 'number' ? product.trendScore.toFixed(1) : '0.0'}/10</span>
         </div>
         <p className="text-sm text-muted-foreground mt-1">
           {product.trendScore > 7
@@ -123,6 +159,19 @@ export const ProductOverview = ({ product }: ProductOverviewProps) => {
             ? "Moderate demand expected"
             : "Low demand expected"}
         </p>
+      </div>
+
+      <div className="mt-4 pt-4 border-t">
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span className="text-muted-foreground">Lead Time:</span>
+            <span className="ml-2 font-medium">{product.leadTime} days</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Total Value:</span>
+            <span className="ml-2 font-medium">${(product.currentStock * product.unitPrice).toLocaleString()}</span>
+          </div>
+        </div>
       </div>
     </Card>
   );

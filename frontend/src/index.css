@@ -192,3 +192,61 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+  
+  /* Custom scrollbar styles */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 3px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+  
+  /* Dashboard specific utilities */
+  .dashboard-card {
+    @apply bg-background rounded-lg shadow-sm border border-border/50 transition-all duration-200 hover:shadow-md;
+  }
+  
+  .dashboard-section {
+    @apply h-fit min-h-[350px] flex flex-col;
+  }
+  
+  .dashboard-section-tall {
+    @apply h-fit min-h-[400px] flex flex-col;
+  }
+  
+  .dashboard-header {
+    @apply flex items-center justify-between mb-4 pb-2 border-b border-border/30;
+  }
+}
